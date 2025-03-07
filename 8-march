@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Поздравление с 8 марта!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { 
+      width: 100%; 
+      height: 100%; 
+      overflow: hidden; 
+      background: #af4dff !important;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+    
+    .scene {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 1s ease;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .scene.active { opacity: 1; }
+    
+    .scene h1 {
+      font-family: 'Pacifico', cursive !important;
+      font-size: 4rem;
+      color: #fff;
+      text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+      animation: textPulse 2s infinite;
+      text-align: center;
+      padding: 20px;
+      max-width: 90%;
+    }
+
+    @media (max-width: 768px) {
+      .scene h1 {
+        font-size: 2.5rem;
+        line-height: 1.3;
+      }
+    }
+    
+    @keyframes textPulse {
+      0%   { transform: scale(0.95); }
+      50%  { transform: scale(1.05); }
+      100% { transform: scale(0.95); }
+    }
+    
+    #fireworksCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .floating {
+      position: fixed;
+      font-size: 2rem;
+      z-index: 2;
+      pointer-events: none;
+      animation-duration: 8s;
+      animation-timing-function: linear;
+      animation-fill-mode: forwards;
+    }
+
+    /* Разные траектории анимации */
+    @keyframes floatUp {
+      0% { transform: translate(0, 100vh) scale(0.8); opacity: 1; }
+      100% { transform: translate(0, -100vh) scale(1.2); opacity: 0; }
+    }
+    @keyframes floatLeft {
+      0% { transform: translate(100vw, 100vh) scale(0.8); opacity: 1; }
+      100% { transform: translate(-100vw, -100vh) scale(1.2); opacity: 0; }
+    }
+    @keyframes floatRight {
+      0% { transform: translate(-100vw, 100vh) scale(0.8); opacity: 1; }
+      100% { transform: translate(100vw, -100vh) scale(1.2); opacity: 0; }
+    }
+    @keyframes floatDiagonal1 {
+      0% { transform: translate(-50vw, 100vh) scale(0.8); opacity: 1; }
+      100% { transform: translate(50vw, -100vh) scale(1.2); opacity: 0; }
+    }
+    @keyframes floatDiagonal2 {
+      0% { transform: translate(50vw, 100vh) scale(0.8); opacity: 1; }
+      100% { transform: translate(-50vw, -100vh) scale(1.2); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="fireworksCanvas"></canvas>
+  
+  <div id="scene2" class="scene active">
+    <h1>С 8 марта , Алена и Даяна!</h1>
+  </div>
+  
+  <div id="scene3" class="scene">
+    <h1>Вы – настоящие королевы!</h1>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('fireworksCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    class Particle {
+      constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.radius = Math.random() * 2 + 2;
+        this.color = color;
+        this.speed = Math.random() * 5 + 2;
+        this.angle = Math.random() * Math.PI * 2;
+        this.vx = Math.cos(this.angle) * this.speed;
+        this.vy = Math.sin(this.angle) * this.speed;
+        this.alpha = 1;
+        this.decay = Math.random() * 0.02 + 0.01;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.alpha -= this.decay;
+      }
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+    
+    let particles = [];
+    
+    function createFirework(x, y) {
+      const colors = ['#ff0043', '#14fc56', '#1e90ff', '#ffdc00', '#ff69b4', '#00ffff'];
+      for (let i = 0; i < 100; i++) {
+        particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)]));
+      }
+    }
+    
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach((p, i) => {
+        p.update();
+        p.draw();
+        if (p.alpha <= 0) particles.splice(i, 1);
+      });
+      requestAnimationFrame(animate);
+    }
+    animate();
+    
+    // Фейерверки по всему экрану
+    setInterval(() => {
+      createFirework(
+        Math.random() * canvas.width,
+        Math.random() * canvas.height
+      );
+    }, 1500);
+    
+    // Фейерверки по клику
+    document.addEventListener('click', (e) => {
+      createFirework(e.clientX, e.clientY);
+    });
+    
+    // Плавающие элементы с разными траекториями
+    const emojis = ['❤️', '💐', '🌸', '💕', '🌹', '🌷', '✨', '🌺', '🎉', '💖', '🌼', '💫', '🌟', '🎊', '🌞'];
+    const animations = ['floatUp', 'floatLeft', 'floatRight', 'floatDiagonal1', 'floatDiagonal2'];
+    
+    function createFloating() {
+      const emoji = document.createElement('div');
+      emoji.className = 'floating';
+      emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      
+      // Случайные параметры анимации
+      const animation = animations[Math.floor(Math.random() * animations.length)];
+      emoji.style.animationName = animation;
+      emoji.style.animationDuration = `${Math.random() * 3 + 5}s`;
+      emoji.style.animationDelay = `${Math.random() * 2}s`;
+      emoji.style.fontSize = `${Math.random() * 2 + 2}rem`;
+      emoji.style.left = `${Math.random() * 100}vw`;
+      emoji.style.top = `${Math.random() * 100}vh`;
+      
+      document.body.appendChild(emoji);
+      setTimeout(() => emoji.remove(), 10000);
+    }
+    
+    // Запуск с разной частотой
+    setInterval(createFloating, 200);
+    
+    // Смена сцен
+    const scenes = document.querySelectorAll('.scene');
+    let current = 0;
+    setInterval(() => {
+      scenes[current].classList.remove('active');
+      current = (current + 1) % scenes.length;
+      scenes[current].classList.add('active');
+    }, 4000);
+  </script>
+</body>
+</html>
